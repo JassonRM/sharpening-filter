@@ -3,4 +3,7 @@
   <ItemGroup>
     <MASM Include="Main.asm" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="image.bin" />
+  </ItemGroup>
 </Project>

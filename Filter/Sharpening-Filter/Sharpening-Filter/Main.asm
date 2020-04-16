@@ -3,7 +3,7 @@ TITLE Reading a File(ReadFile.asm)
 ; procedures from Irvine32.lib.
 INCLUDE Irvine32.inc
 INCLUDE macros.inc
-BUFFER_SIZE = 500000
+BUFFER_SIZE = 5000004
 .data
 sharpenKernel BYTE 0, -1, 0, -1, 5, -1, 0, -1, 0
 kernel DWORD ?
@@ -16,8 +16,8 @@ overSharpenedFile BYTE "oversharpened.bin", 0
 outputFile DWORD ?
 fileHandle HANDLE ?
 outputHandle HANDLE ?
-imageWidth DWORD 615
-imageHeight DWORD 446
+imageWidth DWORD ?
+imageHeight DWORD ?
 imageSize DWORD ?
 .code
 main PROC
@@ -46,17 +46,24 @@ mWrite <"Error: Buffer too small for the file", 0dh, 0ah>
 jmp quit
 
 buf_size_ok :
-mov eax, imageWidth
-mul imageHeight
+mov eax, 0
+mov ebx, 0
+mov ah, buffer[0]
+mov al, buffer[1]
+mov bh, buffer[2]
+mov bl, buffer[3]
+mov imageWidth, eax
+mov imageHeight, ebx
+mul ebx
 mov ecx, eax
 mov imageSize, ecx
-mov esi, 0
+mov esi, 4
 mov kernel, OFFSET sharpenKernel
 mov outputFile, OFFSET sharpenedFile
 jmp imageProcessing
 
 oversharpen:
-mov esi, 0
+mov esi, 4
 mov ecx, imageSize
 mov outputFile, OFFSET overSharpenedFile
 
@@ -139,7 +146,9 @@ fix_white:
 mov dx, 255
 
 end_loop:
-mov outputBuffer[esi], dl
+mov ebx, esi
+sub ebx, 4
+mov outputBuffer[ebx], dl
 add esi, TYPE BYTE
 dec ecx
 jnz imageProcessing
@@ -161,7 +170,7 @@ mov ecx, BUFFER_SIZE
 call WriteToFile
 
 close_file :
-mov eax, fileHandle
+mov eax, outputHandle
 call CloseFile
 
 ; Check current file
@@ -262,6 +271,7 @@ push edx
 
 ; Revisar si hay pixeles arriba
 mov ebx, esi
+sub ebx, 4
 cmp ebx, imageWidth
 jb is_top
 mov sides[0], 1
@@ -274,6 +284,7 @@ not_top :
 ; Revisar si hay pixeles a la izquierda
 push dx
 mov eax, esi
+sub eax, 4
 mov edx, 0
 div imageWidth
 cmp edx, 0
@@ -289,6 +300,7 @@ not_left :
 ; Revisar si hay pixeles a la derecha
 push dx
 mov eax, esi
+sub eax, 4
 mov edx, 0
 div imageWidth
 mov eax, imageWidth
@@ -305,6 +317,7 @@ mov sides[2], 0
 not_right :
 ; Revisar si hay pixeles abajo
 mov ebx, esi
+sub ebx, 4
 add ebx, imageWidth
 cmp ebx, imageSize
 jae is_bottom
